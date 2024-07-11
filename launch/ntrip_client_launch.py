@@ -22,7 +22,12 @@ def generate_launch_description():
           DeclareLaunchArgument('cert',                  default_value='None'),
           DeclareLaunchArgument('key',                   default_value='None'),
           DeclareLaunchArgument('ca_cert',               default_value='None'),
+          DeclareLaunchArgument('nmea_max_length',       default_value='82'),
+          DeclareLaunchArgument('nmea_min_length',       default_value='3'),
           DeclareLaunchArgument('rtcm_message_package',  default_value='rtcm_msgs'),
+          DeclareLaunchArgument('reconnect_attempt_max', default_value='10'),
+          DeclareLaunchArgument('reconnect_attempt_wait_seconds', default_value='5'),
+          DeclareLaunchArgument('rtcm_timeout_seconds',  default_value='4'),
 
           # Pass an environment variable to the node
           SetEnvironmentVariable(name='NTRIP_CLIENT_DEBUG', value=LaunchConfiguration('debug')),
@@ -66,18 +71,18 @@ def generate_launch_description():
                     'rtcm_frame_id': 'odom',
 
                     # Optional parameters that will allow for longer or shorter NMEA messages. Standard max length for NMEA is 82
-                    'nmea_max_length': 82,
-                    'nmea_min_length': 3,
+                    'nmea_max_length': LaunchConfiguration('nmea_max_length'),
+                    'nmea_min_length': LaunchConfiguration('nmea_min_length'),
 
                     # Use this parameter to change the type of RTCM message published by the node. Defaults to "mavros_msgs", but we also support "rtcm_msgs"
                     'rtcm_message_package': LaunchConfiguration('rtcm_message_package'),
 
                     # Will affect how many times the node will attempt to reconnect before exiting, and how long it will wait in between attempts when a reconnect occurs
-                    'reconnect_attempt_max': 10,
-                    'reconnect_attempt_wait_seconds': 5,
+                    'reconnect_attempt_max': LaunchConfiguration('reconnect_attempt_max'),
+                    'reconnect_attempt_wait_seconds': LaunchConfiguration('reconnect_attempt_wait_seconds'),
 
                     # How many seconds is acceptable in between receiving RTCM. If RTCM is not received for this duration, the node will attempt to reconnect
-                    'rtcm_timeout_seconds': 4
+                    'rtcm_timeout_seconds': LaunchConfiguration('rtcm_timeout_seconds')
                   }
                 ],
                 # Uncomment the following section and replace "/gx5/nmea/sentence" with the topic you are sending NMEA on if it is not the one we requested
