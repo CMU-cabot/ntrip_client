@@ -150,9 +150,10 @@ class NTRIPRos(Node):
     # diagnostic updater
     self._updater = Updater(self)
     self._updater.setHardwareID("NTRIP client")
-    self._rtcm_timestamp = None
     def rtcm_status(stat):
-      if self._client.rtcm_timeout():
+      if self._client.rtcm_timeout is None:
+        stat.summary(DiagnosticStatus.ERROR, "RTCM not received")
+      elif self._client.rtcm_timeout:
         stat.summary(DiagnosticStatus.ERROR, "RTCM timeout")
       else:
         stat.summary(DiagnosticStatus.OK, "RTCM received")
