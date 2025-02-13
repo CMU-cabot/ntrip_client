@@ -10,6 +10,9 @@ from rclpy.node import Node
 from std_msgs.msg import Header
 from nmea_msgs.msg import Sentence
 
+from diagnostic_updater import Updater, FunctionDiagnosticTask
+from diagnostic_msgs.msg import DiagnosticStatus
+
 from ntrip_client.ntrip_client import NTRIPClient
 from ntrip_client.nmea_parser import NMEA_DEFAULT_MAX_LENGTH, NMEA_DEFAULT_MIN_LENGTH
 
@@ -143,6 +146,18 @@ class NTRIPRos(Node):
     self._client.reconnect_attempt_max = self.get_parameter('reconnect_attempt_max').value
     self._client.reconnect_attempt_wait_seconds = self.get_parameter('reconnect_attempt_wait_seconds').value
     self._client.rtcm_timeout_seconds = self.get_parameter('rtcm_timeout_seconds').value
+
+    # diagnostic updater
+    self._updater = Updater(self)
+    self._updater.setHardwareID("NTRIP client")
+    self._rtcm_timestamp = None
+    def rtcm_status(stat):
+      if self._client.rtcm_timeout():
+        stat.summary(DiagnosticStatus.ERROR, "RTCM timeout")
+      else:
+        stat.summary(DiagnosticStatus.OK, "RTCM received")
+      return stat
+    self._updater.add(FunctionDiagnosticTask("RTCM status", rtcm_status))
 
   def run(self):
     # Connect the client

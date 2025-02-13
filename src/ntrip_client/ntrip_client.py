@@ -84,6 +84,7 @@ class NTRIPClient:
     self._read_zero_bytes_max = 5
     self._first_rtcm_received = False
     self._recv_rtcm_last_packet_timestamp = 0
+    self._rtcm_timeout = False
 
     # Public reconnect info
     self.reconnect_attempt_max = self.DEFAULT_RECONNECT_ATTEMPT_MAX
@@ -243,6 +244,7 @@ class NTRIPClient:
     # If it has been too long since we received an RTCM packet, reconnect
     if time.time() - self.rtcm_timeout_seconds >= self._recv_rtcm_last_packet_timestamp and self._first_rtcm_received:
       self._logerr('RTCM data not received for {} seconds, reconnecting'.format(self.rtcm_timeout_seconds))
+      self._rtcm_timeout = True
       self.reconnect()
       self._first_rtcm_received = False
 
@@ -282,9 +284,13 @@ class NTRIPClient:
       # Looks like we received valid data, so note when the data was received
       self._recv_rtcm_last_packet_timestamp = time.time()
       self._first_rtcm_received = True
+      self._rtcm_timeout = False
 
     # Send the data to the RTCM parser to parse it
     return self.rtcm_parser.parse(data) if data else []
+
+  def rtcm_timeout(self):
+    return self._rtcm_timeout
 
   def shutdown(self):
     # Set some state, and then disconnect
