@@ -27,6 +27,7 @@ def generate_launch_description():
           DeclareLaunchArgument('rtcm_message_package',  default_value='rtcm_msgs'),
           DeclareLaunchArgument('reconnect_attempt_max', default_value='10'),
           DeclareLaunchArgument('reconnect_attempt_wait_seconds', default_value='5'),
+          DeclareLaunchArgument('respawn',               default_value='false'),
           DeclareLaunchArgument('rtcm_timeout_seconds',  default_value='4'),
 
           # Pass an environment variable to the node
@@ -89,5 +90,7 @@ def generate_launch_description():
                 #remappings=[
                 #  ("nmea", "/gx5/nmea/sentence")
                 #],
+                respawn=LaunchConfiguration('respawn'),
+                respawn_delay=5.0,
           )
       ])
