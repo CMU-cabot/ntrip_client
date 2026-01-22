@@ -59,6 +59,7 @@ class NTRIPRos(Node):
         ('reconnect_attempt_max', NTRIPClient.DEFAULT_RECONNECT_ATTEMPT_MAX),
         ('reconnect_attempt_wait_seconds', NTRIPClient.DEFAULT_RECONNECT_ATEMPT_WAIT_SECONDS),
         ('rtcm_timeout_seconds', NTRIPClient.DEFAULT_RTCM_TIMEOUT_SECONDS),
+        ('rtcm_timeout_error_level', 2),  # DiagnosticStatus.ERROR
       ]
     )
 
@@ -146,15 +147,16 @@ class NTRIPRos(Node):
     self._client.reconnect_attempt_max = self.get_parameter('reconnect_attempt_max').value
     self._client.reconnect_attempt_wait_seconds = self.get_parameter('reconnect_attempt_wait_seconds').value
     self._client.rtcm_timeout_seconds = self.get_parameter('rtcm_timeout_seconds').value
+    rtcm_timeout_error_level = bytes([self.get_parameter('rtcm_timeout_error_level').value])
 
     # diagnostic updater
     self._updater = Updater(self)
     self._updater.setHardwareID("NTRIP client")
     def rtcm_status(stat):
       if self._client.rtcm_timeout is None:
-        stat.summary(DiagnosticStatus.ERROR, "RTCM not received")
+        stat.summary(rtcm_timeout_error_level, "RTCM not received")
       elif self._client.rtcm_timeout:
-        stat.summary(DiagnosticStatus.ERROR, "RTCM timeout")
+        stat.summary(rtcm_timeout_error_level, "RTCM timeout")
       else:
         stat.summary(DiagnosticStatus.OK, "RTCM received")
       return stat
