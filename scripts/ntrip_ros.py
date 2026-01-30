@@ -152,8 +152,11 @@ class NTRIPRos(Node):
     # diagnostic updater
     self._updater = Updater(self)
     self._updater.setHardwareID("NTRIP client")
+    self._connected = False
     def rtcm_status(stat):
-      if self._client.rtcm_timeout is None:
+      if not self._connected:
+        stat.summary(rtcm_timeout_error_level, "Unable to connect to NTRIP server")
+      elif self._client.rtcm_timeout is None:
         stat.summary(rtcm_timeout_error_level, "RTCM not received")
       elif self._client.rtcm_timeout:
         stat.summary(rtcm_timeout_error_level, "RTCM timeout")
@@ -165,8 +168,11 @@ class NTRIPRos(Node):
   def run(self):
     # Connect the client
     if not self._client.connect():
+      self._connected = False
+      self._updater.force_update()
       self.get_logger().error('Unable to connect to NTRIP server')
       return False
+    self._connected = True
     # Setup our subscriber
     self._nmea_sub = self.create_subscription(Sentence, 'nmea', self.subscribe_nmea, 10)
 
@@ -215,6 +221,7 @@ if __name__ == '__main__':
   rclpy.init()
   node = NTRIPRos()
   if not node.run():
+    rclpy.spin_once(node)
     sys.exit(1)
   try:
     # Spin until we are shut down
