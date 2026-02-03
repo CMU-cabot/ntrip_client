@@ -28,7 +28,7 @@ class NTRIPClient:
   # Public constants
   DEFAULT_CONNECT_ATTEMPT_TIMEOUT_SECONDS = 4
   DEFAULT_RECONNECT_ATTEMPT_MAX = 10
-  DEFAULT_RECONNECT_ATTEMPT_WAIT_SECONDS = 5
+  DEFAULT_RECONNECT_ATTEMPT_WAIT_SECONDS = 4
   DEFAULT_RTCM_TIMEOUT_SECONDS = 4
 
   def __init__(self, host, port, mountpoint, ntrip_version, username, password, logerr=logging.error, logwarn=logging.warning, loginfo=logging.info, logdebug=logging.debug):
@@ -76,6 +76,8 @@ class NTRIPClient:
     # Setup some state
     self._shutdown = False
     self._connected = False
+    self._reconnecting = False
+    self.reconnect_status_callback = None
 
     # Private reconnect info
     self._reconnect_attempt_count = 0
@@ -193,16 +195,20 @@ class NTRIPClient:
       while not self._shutdown:
         self._reconnect_attempt_count += 1
         self.disconnect()
+        self._emit_reconnect_status(True)
         connect_success = self.connect()
         if not connect_success and self._reconnect_attempt_count < self.reconnect_attempt_max:
           self._logerr('Reconnect to http://{}:{} failed. Retrying in {} seconds'.format(self._host, self._port, self.reconnect_attempt_wait_seconds))
+          self._emit_reconnect_status(True)
           time.sleep(self.reconnect_attempt_wait_seconds)
         elif self._reconnect_attempt_count >= self.reconnect_attempt_max:
+          self._emit_reconnect_status(False)
           self._reconnect_attempt_count = 0
           raise Exception("Reconnect was attempted {} times, but never succeeded".format(self._reconnect_attempt_count))
           break
         elif connect_success:
           self._reconnect_attempt_count = 0
+          self._emit_reconnect_status(False)
           break
     else:
       self._logdebug('Reconnect called while still connected, ignoring')
@@ -327,3 +333,11 @@ class NTRIPClient:
       self._logwarn('Exception: {}'.format(e))
       return False
     return True
+
+  def _emit_reconnect_status(self, reconnecting):
+    self._reconnecting = reconnecting
+    if self.reconnect_status_callback:
+      try:
+        self.reconnect_status_callback(reconnecting)
+      except Exception as e:
+        self._logdebug('Reconnect status callback raised an exception: {}'.format(e))

@@ -29,6 +29,7 @@ def generate_launch_description():
           DeclareLaunchArgument('reconnect_attempt_wait_seconds', default_value='5'),
           DeclareLaunchArgument('respawn',               default_value='false'),
           DeclareLaunchArgument('rtcm_timeout_seconds',  default_value='4'),
+          DeclareLaunchArgument('reconnect_error_level', default_value='1'),
           DeclareLaunchArgument('rtcm_timeout_error_level',  default_value='2'),
 
           # Pass an environment variable to the node
@@ -85,6 +86,9 @@ def generate_launch_description():
 
                     # How many seconds is acceptable in between receiving RTCM. If RTCM is not received for this duration, the node will attempt to reconnect
                     'rtcm_timeout_seconds': LaunchConfiguration('rtcm_timeout_seconds'),
+
+                    # Diagnostic error level this node reports when reconnecting to NTRIP server.
+                    'reconnect_error_level': LaunchConfiguration('reconnect_error_level'),
 
                     # Diagnostic error level this node reports when RTCM data not received or timeout.
                     'rtcm_timeout_error_level': LaunchConfiguration('rtcm_timeout_error_level'),
