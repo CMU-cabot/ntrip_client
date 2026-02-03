@@ -56,8 +56,9 @@ class NTRIPRos(Node):
         ('nmea_max_length', NMEA_DEFAULT_MAX_LENGTH),
         ('nmea_min_length', NMEA_DEFAULT_MIN_LENGTH),
         ('rtcm_message_package', _MAVROS_MSGS_NAME),
+        ('connect_attempt_timeout_seconds', NTRIPClient.DEFAULT_CONNECT_ATTEMPT_TIMEOUT_SECONDS),
         ('reconnect_attempt_max', NTRIPClient.DEFAULT_RECONNECT_ATTEMPT_MAX),
-        ('reconnect_attempt_wait_seconds', NTRIPClient.DEFAULT_RECONNECT_ATEMPT_WAIT_SECONDS),
+        ('reconnect_attempt_wait_seconds', NTRIPClient.DEFAULT_RECONNECT_ATTEMPT_WAIT_SECONDS),
         ('rtcm_timeout_seconds', NTRIPClient.DEFAULT_RTCM_TIMEOUT_SECONDS),
         ('rtcm_timeout_error_level', 2),  # DiagnosticStatus.ERROR
       ]
@@ -144,6 +145,7 @@ class NTRIPRos(Node):
     # Get some timeout parameters for the NTRIP client
     self._client.nmea_parser.nmea_max_length = self.get_parameter('nmea_max_length').value
     self._client.nmea_parser.nmea_min_length = self.get_parameter('nmea_min_length').value
+    self._client.connect_attempt_timeout_seconds = self.get_parameter('connect_attempt_timeout_seconds').value
     self._client.reconnect_attempt_max = self.get_parameter('reconnect_attempt_max').value
     self._client.reconnect_attempt_wait_seconds = self.get_parameter('reconnect_attempt_wait_seconds').value
     self._client.rtcm_timeout_seconds = self.get_parameter('rtcm_timeout_seconds').value

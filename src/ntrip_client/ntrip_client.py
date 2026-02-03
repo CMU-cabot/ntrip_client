@@ -26,8 +26,9 @@ _UNAUTHORIZED_RESPONSES = [
 class NTRIPClient:
 
   # Public constants
+  DEFAULT_CONNECT_ATTEMPT_TIMEOUT_SECONDS = 4
   DEFAULT_RECONNECT_ATTEMPT_MAX = 10
-  DEFAULT_RECONNECT_ATEMPT_WAIT_SECONDS = 5
+  DEFAULT_RECONNECT_ATTEMPT_WAIT_SECONDS = 5
   DEFAULT_RTCM_TIMEOUT_SECONDS = 4
 
   def __init__(self, host, port, mountpoint, ntrip_version, username, password, logerr=logging.error, logwarn=logging.warning, loginfo=logging.info, logdebug=logging.debug):
@@ -86,15 +87,16 @@ class NTRIPClient:
     self._recv_rtcm_last_packet_timestamp = 0
 
     # Public reconnect info
+    self.connect_attempt_timeout_seconds = self.DEFAULT_CONNECT_ATTEMPT_TIMEOUT_SECONDS
     self.reconnect_attempt_max = self.DEFAULT_RECONNECT_ATTEMPT_MAX
-    self.reconnect_attempt_wait_seconds = self.DEFAULT_RECONNECT_ATEMPT_WAIT_SECONDS
+    self.reconnect_attempt_wait_seconds = self.DEFAULT_RECONNECT_ATTEMPT_WAIT_SECONDS
     self.rtcm_timeout_seconds = self.DEFAULT_RTCM_TIMEOUT_SECONDS
     self.rtcm_timeout = None
 
   def connect(self):
     # Create a socket object that we will use to connect to the server
     self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self._server_socket.settimeout(5)
+    self._server_socket.settimeout(self.connect_attempt_timeout_seconds)
 
     # Connect the socket to the server
     try:
