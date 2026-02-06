@@ -7,6 +7,7 @@ import importlib.util
 
 import rclpy
 from rclpy.node import Node
+from rclpy.duration import Duration
 from std_msgs.msg import Header
 from nmea_msgs.msg import Sentence
 
@@ -158,6 +159,7 @@ class NTRIPRos(Node):
     self._updater.setHardwareID("NTRIP client")
     self._connected = False
     self._reconnecting = False
+    self._rtcm_timer = None
     def rtcm_status(stat):
       if self._reconnecting:
         stat.summary(reconnect_error_level, "Reconnecting to NTRIP server")
@@ -233,9 +235,18 @@ if __name__ == '__main__':
   # Start the node
   rclpy.init()
   node = NTRIPRos()
+  reconnect_attempt_wait_seconds = node.get_parameter('reconnect_attempt_wait_seconds').value
+  reconnect_attempt_wait = Duration(seconds=reconnect_attempt_wait_seconds)
 
   # repeat until client connection is established
-  while not node.run():
+  connected = False
+  next_connect_time = node.get_clock().now()
+  while rclpy.ok() and not connected:
+    now = node.get_clock().now()
+    if now.nanoseconds >= next_connect_time.nanoseconds:
+      connected = node.run()
+      if not connected:
+        next_connect_time = now + reconnect_attempt_wait
     rclpy.spin_once(node)
 
   try:
